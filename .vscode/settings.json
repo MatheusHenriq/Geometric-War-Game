@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "__split_buffer": "cpp",
+        "bitset": "cpp",
+        "ios": "cpp",
+        "vector": "cpp",
+        "__locale": "cpp",
+        "__tree": "cpp",
+        "istream": "cpp",
+        "map": "cpp",
+        "new": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp",
+        "tuple": "cpp",
+        "typeinfo": "cpp"
+    }
+}
