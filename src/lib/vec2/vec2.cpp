@@ -7,12 +7,12 @@ Vec2::Vec2(float xin, float yin) : x(xin), y(yin) {}
 
 bool Vec2::operator==(const Vec2 &rhs) const
 {
-    return x == rhs.x && y == rhs.y;
+    return (x == rhs.x && y == rhs.y);
 }
 
 bool Vec2::operator!=(const Vec2 &rhs) const
 {
-    return x != rhs.x || y != rhs.y;
+    return (x != rhs.x || y != rhs.y);
 }
 
 Vec2 Vec2::operator+(const Vec2 &rhs) const
@@ -73,6 +73,8 @@ Vec2 &Vec2::scale(const float val)
 }
 Vec2 &Vec2::rotate(const float degree)
 {
+    // TODO: SEE HOW IT WORKS
+    return *this;
 }
 
 float Vec2::dist(const Vec2 &rhs) const
