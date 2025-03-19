@@ -1,8 +1,8 @@
 #include "lib/gameEngine/game_engine.h"
+#include <SFML/Graphics.hpp>
 
-int main(int argc, char *argv[])
+int main()
 {
-    GameEngine game = GameEngine("config.txt");
+    GameEngine game("config.txt");
     game.run();
-    return 0;
 };

@@ -2,8 +2,8 @@
 #define ENTITY_H
 #include <map>
 #include <vector>
-#include "components/components.h"
-#include "entityManager/entity_manager.h"
+#include "../components/components.h"
+#include "../entityManager/entity_manager.h"
 
 class Entity
 {

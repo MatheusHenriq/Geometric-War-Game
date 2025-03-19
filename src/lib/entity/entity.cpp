@@ -5,9 +5,6 @@
 #include <vector>
 #include "entity.h"
 
-typedef std::vector<std::shared_ptr<Entity>> EntityVec;
-typedef std::map<std::string, EntityVec> EntityMap;
-
 Entity::Entity(size_t id, const std::string &tag) : m_tag(tag), m_id(id) {};
 
 const bool Entity::isAlive() const

@@ -2,8 +2,6 @@
 #include <map>
 #include <vector>
 #include "entity_manager.h"
-typedef std::vector<std::shared_ptr<Entity>> EntityVec;
-typedef std::map<std::string, EntityVec> EntityMap;
 
 EntityManager::EntityManager() {}
 
@@ -26,15 +24,15 @@ void EntityManager::update()
 
 void EntityManager::removeDeadEntities(EntityVec &vec)
 {
-    auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](Entity v)
-                                       { return !v.isAlive(); });
+    // auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](Entity v)
+    //                                    { return !v.isAlive(); });
 
-    vec.erase(deadEntities);
+    // vec.erase(deadEntities);
 }
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag)
 {
-    auto e = std::make_shared<Entity>(new Entity(m_totalEntities++, tag));
+    auto e = std::make_shared<Entity>(m_totalEntities++, tag);
     m_toAdd.push_back(e);
     return e;
 }

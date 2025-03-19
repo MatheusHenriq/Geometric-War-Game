@@ -1,6 +1,6 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
-#include "vec2/vec2.h"
+#include "../vec2/vec2.h"
 #include <SFML/Graphics.hpp>
 
 class CTransform

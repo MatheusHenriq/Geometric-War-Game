@@ -3,21 +3,19 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <iostream>
-
-#include "game_engine.h"
-#include "entityManager/entity_manager.h"
-#include "entity/entity.h"
-#include "vec2/vec2.h"
+#include "../entityManager/entity_manager.h"
+#include "../entity/entity.h"
+#include "../vec2/vec2.h"
 #include "game_engine.h"
 
 GameEngine::GameEngine(const std::string &config)
 {
+
     init(config);
 }
 void GameEngine::loadConfigFile(const std::string &config)
 {
     std::string type;
-
     std::ifstream fin(config);
     while (fin >> type)
     {
@@ -52,7 +50,9 @@ void GameEngine::init(const std::string &config)
     loadConfigFile(config);
     if (m_font.openFromFile(m_fontConfig.P))
     {
-        std::cout << "Error loading font :(" << std::endl;
+        m_text = std::make_shared<sf::Text>(m_font);
+        m_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
+        m_text->setCharacterSize(m_fontConfig.ST);
     }
     if (m_windowConfig.FS == 0)
     {
@@ -62,9 +62,29 @@ void GameEngine::init(const std::string &config)
     {
         m_window.create(sf::VideoMode({m_windowConfig.W, m_windowConfig.H}), "Assignment 2!", sf::State::Fullscreen);
     }
-    m_text->setFont(m_font);
-    m_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
-    m_text->setCharacterSize(m_fontConfig.ST);
     m_window.setFramerateLimit(m_windowConfig.FL);
-    spawnPlayer();
+    //    spawnPlayer();
+}
+
+void GameEngine::run()
+{
+    while (m_running)
+    {
+        while (const std::optional event = m_window.pollEvent())
+        {
+            if (event->is<sf::Event::KeyPressed>())
+            {
+                if (event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+                {
+                    m_running = false;
+                    m_window.close();
+                }
+            }
+
+            m_window.clear();
+            m_window.display();
+            //  m_entities.update();
+            m_currentFrame++;
+        }
+    }
 }

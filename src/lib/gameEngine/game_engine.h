@@ -2,9 +2,9 @@
 // holds all game data
 #ifndef GAME_ENGINE_H
 #define GAME_ENGINE_H
-#include "entityManager/entity_manager.h"
-#include "entity/entity.h"
-#include "vec2/vec2.h"
+#include "../entityManager/entity_manager.h"
+#include "../entity/entity.h"
+#include "../vec2/vec2.h"
 #include <SFML/Graphics.hpp>
 
 struct PlayerConfig
@@ -26,12 +26,12 @@ struct BulletConfig
 
 struct WindowConfig
 {
-    size_t H, W, FL, FS;
+    unsigned int H, W, FL, FS;
 };
 struct FontConfig
 {
     std::string P;
-    size_t ST, R, G, B;
+    unsigned int ST, R, G, B;
 };
 class GameEngine
 {
@@ -44,8 +44,6 @@ class GameEngine
     BulletConfig m_bulletConfig;
     WindowConfig m_windowConfig;
     FontConfig m_fontConfig;
-
-    size_t m_currentFrame = 0;
     int m_score = 0;
     int m_currentFrame = 0;
     int m_lastEnemySpawnTime = 0;

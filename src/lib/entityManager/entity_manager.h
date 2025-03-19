@@ -3,7 +3,8 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "entity/entity.h"
+class Entity; // forward dclaration
+#include "../entity/entity.h"
 
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map<std::string, EntityVec> EntityMap;
