@@ -70,23 +70,37 @@ void GameEngine::run()
 {
     while (m_running)
     {
-        while (const std::optional event = m_window.pollEvent())
-        {
-            if (event->is<sf::Event::KeyPressed>())
-            {
-                if (event->getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
-                {
-                    m_running = false;
-                    m_window.close();
-                }
-            }
-        }
         sRender();
         sMoviment();
         sUserInput();
-        // m_entities.update();
+        m_entities.update();
         m_currentFrame++;
     }
+}
+int GameEngine::randNumber(const int max, const int min)
+{
+    return min + (rand() % (1 + max - min));
+}
+void GameEngine::sEnemySpawner()
+{
+    auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
+
+    m_lastEnemySpawnTime = m_currentFrame;
+    float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
+    float ey = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
+
+    float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+    float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+
+    auto entity = m_entities.addEntity("enemy");
+    entity->CTransform = std::make_shared<CTransform>(Vec2(ex, ey),
+                                                      Vec2(evx, evy),
+                                                      0.0f);
+    entity->cShape = std::make_shared<CShape>(m_enemyConfig.SR,
+                                              enemyVerticesNumber,
+                                              sf::Color(0, 0, 0),
+                                              sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OG),
+                                              m_enemyConfig.OT);
 }
 
 void GameEngine::spawnPlayer()
@@ -109,10 +123,18 @@ void GameEngine::spawnPlayer()
 void GameEngine::sRender()
 {
     m_window.clear();
-    m_player->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
-    m_player->CTransform->angle += 1.0f; // rotation
-    m_player->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
-    m_window.draw(m_player->cShape->circle);
+
+    for (auto e : m_entities.getEntities())
+    {
+        e->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
+        e->CTransform->angle += 1.0f; // rotation
+        e->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
+        m_window.draw(m_player->cShape->circle);
+    }
+    // m_player->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
+    // m_player->CTransform->angle += 1.0f; // rotation
+    // m_player->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
+    // m_window.draw(m_player->cShape->circle);
     m_window.display();
 }
 

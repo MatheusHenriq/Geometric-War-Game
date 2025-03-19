@@ -64,6 +64,7 @@ class GameEngine
     void spawnSmallEnemies(std::shared_ptr<Entity> entity);
     void spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos);
     void spawnSpecialWeapon(std::shared_ptr<Entity> entity);
+    int randNumber(const int max, const int min);
 
 public:
     GameEngine(const std::string &config);
