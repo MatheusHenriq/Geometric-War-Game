@@ -82,6 +82,8 @@ void GameEngine::run()
             }
         }
         sRender();
+        sMoviment();
+        sUserInput();
         // m_entities.update();
         m_currentFrame++;
     }
@@ -92,7 +94,6 @@ void GameEngine::spawnPlayer()
     auto entity = m_entities.addEntity("player");
     float mx = m_window.getSize().x / 2.0f;
     float my = m_window.getSize().y / 2.0f;
-    std::cout << "win size x " << m_window.getSize().x << " y " << m_window.getSize().y << std::endl;
     entity->CTransform = std::make_shared<CTransform>(Vec2(mx, my),
                                                       Vec2(0.0f, 0.0f),
                                                       0.0f);
@@ -113,4 +114,87 @@ void GameEngine::sRender()
     m_player->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
     m_window.draw(m_player->cShape->circle);
     m_window.display();
+}
+
+void GameEngine::sUserInput()
+{
+    while (const std::optional event = m_window.pollEvent())
+    {
+        if (event->is<sf::Event::KeyPressed>())
+        {
+            switch (event->getIf<sf::Event::KeyPressed>()->code)
+            {
+            case sf::Keyboard::Key::Escape:
+                m_running = false;
+                m_window.close();
+            case sf::Keyboard::Key::W:
+                m_player->cInput->up = true;
+                break;
+
+            case sf::Keyboard::Key::S:
+                m_player->cInput->down = true;
+                break;
+
+            case sf::Keyboard::Key::A:
+                m_player->cInput->left = true;
+                break;
+
+            case sf::Keyboard::Key::D:
+                m_player->cInput->right = true;
+                break;
+
+            default:
+                break;
+            }
+        }
+        if (event->is<sf::Event::KeyReleased>())
+        {
+            switch (event->getIf<sf::Event::KeyReleased>()->code)
+            {
+            case sf::Keyboard::Key::W:
+                m_player->cInput->up = false;
+                break;
+
+            case sf::Keyboard::Key::S:
+                m_player->cInput->down = false;
+                break;
+
+            case sf::Keyboard::Key::A:
+                m_player->cInput->left = false;
+                break;
+
+            case sf::Keyboard::Key::D:
+                m_player->cInput->right = false;
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void GameEngine::sMoviment()
+{
+
+    m_player->CTransform->velocity = Vec2(0, 0);
+
+    if (m_player->cInput->up)
+    {
+        m_player->CTransform->velocity.y = -m_playerConfig.S;
+    }
+    if (m_player->cInput->down)
+    {
+        m_player->CTransform->velocity.y = m_playerConfig.S;
+    }
+    if (m_player->cInput->left)
+    {
+        m_player->CTransform->velocity.x = -m_playerConfig.S;
+    }
+    if (m_player->cInput->right)
+    {
+        m_player->CTransform->velocity.x = m_playerConfig.S;
+    }
+    m_player->CTransform->pos.x += m_player->CTransform->velocity.x;
+    m_player->CTransform->pos.y += m_player->CTransform->velocity.y;
 }
