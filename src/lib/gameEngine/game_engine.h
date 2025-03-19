@@ -53,7 +53,7 @@ class GameEngine
     void init(const std::string &config);
     void setPause(bool paused);
     void loadConfigFile(const std::string &config);
-
+    void sRender();
     void sMoviment();
     void sUserInput();
     void sLifespan();

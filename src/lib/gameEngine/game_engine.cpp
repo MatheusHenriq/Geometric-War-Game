@@ -29,7 +29,7 @@ void GameEngine::loadConfigFile(const std::string &config)
         }
         else if (type == "Player")
         {
-            fin >> m_playerConfig.SR >> m_playerConfig.CR >> m_playerConfig.FR >> m_playerConfig.FB >> m_playerConfig.OR >> m_playerConfig.OG >> m_playerConfig.OB >> m_playerConfig.OT >> m_playerConfig.V >> m_playerConfig.S;
+            fin >> m_playerConfig.SR >> m_playerConfig.CR >> m_playerConfig.S >> m_playerConfig.FR >> m_playerConfig.FG >> m_playerConfig.FB >> m_playerConfig.OR >> m_playerConfig.OG >> m_playerConfig.OB >> m_playerConfig.OT >> m_playerConfig.V;
         }
         else if (type == "Enemy")
         {
@@ -63,7 +63,7 @@ void GameEngine::init(const std::string &config)
         m_window.create(sf::VideoMode({m_windowConfig.W, m_windowConfig.H}), "Assignment 2!", sf::State::Fullscreen);
     }
     m_window.setFramerateLimit(m_windowConfig.FL);
-    //    spawnPlayer();
+    spawnPlayer();
 }
 
 void GameEngine::run()
@@ -80,11 +80,37 @@ void GameEngine::run()
                     m_window.close();
                 }
             }
-
-            m_window.clear();
-            m_window.display();
-            //  m_entities.update();
-            m_currentFrame++;
         }
+        sRender();
+        // m_entities.update();
+        m_currentFrame++;
     }
+}
+
+void GameEngine::spawnPlayer()
+{
+    auto entity = m_entities.addEntity("player");
+    float mx = m_window.getSize().x / 2.0f;
+    float my = m_window.getSize().y / 2.0f;
+    std::cout << "win size x " << m_window.getSize().x << " y " << m_window.getSize().y << std::endl;
+    entity->CTransform = std::make_shared<CTransform>(Vec2(mx, my),
+                                                      Vec2(0.0f, 0.0f),
+                                                      0.0f);
+    entity->cShape = std::make_shared<CShape>(m_playerConfig.SR,
+                                              m_playerConfig.V,
+                                              sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
+                                              sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OG),
+                                              m_playerConfig.OT);
+    entity->cInput = std::make_shared<CInput>();
+    m_player = entity;
+}
+
+void GameEngine::sRender()
+{
+    m_window.clear();
+    m_player->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
+    m_player->CTransform->angle += 1.0f; // rotation
+    m_player->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
+    m_window.draw(m_player->cShape->circle);
+    m_window.display();
 }
