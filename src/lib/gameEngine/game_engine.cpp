@@ -178,23 +178,25 @@ void GameEngine::sMoviment()
 {
 
     m_player->CTransform->velocity = Vec2(0, 0);
-
-    if (m_player->cInput->up)
+    float wx = m_window.getSize().x;
+    float wy = m_window.getSize().y;
+    if (m_player->cInput->up && m_player->CTransform->pos.y - m_player->cShape->circle.getRadius() > 0)
     {
         m_player->CTransform->velocity.y = -m_playerConfig.S;
     }
-    if (m_player->cInput->down)
+    if (m_player->cInput->down && m_player->CTransform->pos.y + m_player->cShape->circle.getRadius() < wy)
     {
         m_player->CTransform->velocity.y = m_playerConfig.S;
     }
-    if (m_player->cInput->left)
+    if (m_player->cInput->left && m_player->CTransform->pos.x - m_player->cShape->circle.getRadius() > 0)
     {
         m_player->CTransform->velocity.x = -m_playerConfig.S;
     }
-    if (m_player->cInput->right)
+    if (m_player->cInput->right && m_player->CTransform->pos.x + m_player->cShape->circle.getRadius() < wx)
     {
         m_player->CTransform->velocity.x = m_playerConfig.S;
     }
+
     m_player->CTransform->pos.x += m_player->CTransform->velocity.x;
     m_player->CTransform->pos.y += m_player->CTransform->velocity.y;
 }
