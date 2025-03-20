@@ -37,7 +37,7 @@ void GameEngine::loadConfigFile(const std::string &config)
         }
         else if (type == "Bullet")
         {
-            fin >> m_bulletConfig.SR >> m_bulletConfig.CR >> m_bulletConfig.FR >> m_bulletConfig.FB >> m_bulletConfig.OR >> m_bulletConfig.OG >> m_bulletConfig.OB >> m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.S;
+            fin >> m_bulletConfig.SR >> m_bulletConfig.CR >> m_bulletConfig.S >> m_bulletConfig.FR >> m_bulletConfig.FG >> m_bulletConfig.FB >> m_bulletConfig.OR >> m_bulletConfig.OG >> m_bulletConfig.OB >> m_bulletConfig.OT >> m_bulletConfig.V >> m_bulletConfig.L;
         }
         else
         {
@@ -81,6 +81,25 @@ void GameEngine::run()
 int GameEngine::randNumber(const int max, const int min)
 {
     return min + (rand() % (1 + max - min));
+}
+void GameEngine::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos)
+{
+    auto e = m_entities.addEntity("bullet");
+    // math here
+    Vec2 diffVec = mousePos - entity->CTransform->pos;
+    float diffVecLenght = diffVec.length();
+    diffVec /= diffVecLenght;
+
+    Vec2 entityPosition = entity->CTransform->pos;
+    e->CTransform = std::make_shared<CTransform>(Vec2(entityPosition.x, entityPosition.y),
+                                                 Vec2(diffVec.x * m_bulletConfig.S, diffVec.y * m_bulletConfig.S),
+                                                 0.0f);
+
+    e->cShape = std::make_shared<CShape>(m_bulletConfig.SR,
+                                         m_bulletConfig.V,
+                                         sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB),
+                                         sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OG),
+                                         m_bulletConfig.OT);
 }
 void GameEngine::sEnemySpawner()
 {
@@ -144,6 +163,15 @@ void GameEngine::sUserInput()
 {
     while (const std::optional event = m_window.pollEvent())
     {
+        if (event->is<sf::Event::MouseButtonPressed>())
+        {
+            if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left)
+            {
+
+                Vec2 mouseVec = Vec2(float(event->getIf<sf::Event::MouseButtonPressed>()->position.x), float(event->getIf<sf::Event::MouseButtonPressed>()->position.y));
+                spawnBullet(m_player, mouseVec);
+            }
+        }
         if (event->is<sf::Event::KeyPressed>())
         {
             switch (event->getIf<sf::Event::KeyPressed>()->code)
@@ -239,6 +267,11 @@ void GameEngine::sMoviment()
             e->CTransform->velocity.x *= -1;
         }
 
+        e->CTransform->pos.x += e->CTransform->velocity.x;
+        e->CTransform->pos.y += e->CTransform->velocity.y;
+    }
+    for (auto e : m_entities.getEntities("bullet"))
+    {
         e->CTransform->pos.x += e->CTransform->velocity.x;
         e->CTransform->pos.y += e->CTransform->velocity.y;
     }
