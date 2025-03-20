@@ -66,6 +66,37 @@ void GameEngine::init(const std::string &config)
     spawnPlayer();
 }
 
+void GameEngine::sCollision()
+{
+    for (auto b : m_entities.getEntities("bullet"))
+    {
+        for (auto e : m_entities.getEntities("enemy"))
+        {
+            float distanceSquare = e->CTransform->pos.distSquare(b->CTransform->pos);
+            float radiusSquareSum = (b->cCollision->radius + e->cCollision->radius) * (b->cCollision->radius + e->cCollision->radius);
+            if (abs(distanceSquare) <= radiusSquareSum)
+            {
+                e->destroy();
+                b->destroy();
+                break;
+            }
+        }
+    }
+    for (auto e : m_entities.getEntities("enemy"))
+    {
+        float distanceSquare = e->CTransform->pos.distSquare(m_player->CTransform->pos);
+        float radiusSquareSum = (m_player->cCollision->radius + e->cCollision->radius) * (m_player->cCollision->radius + e->cCollision->radius);
+        if (abs(distanceSquare) <= radiusSquareSum)
+        {
+            e->destroy();
+            float mx = m_window.getSize().x / 2.0f;
+            float my = m_window.getSize().y / 2.0f;
+            m_player->CTransform->pos = Vec2(mx, my);
+            break;
+        }
+    }
+}
+
 void GameEngine::run()
 {
     while (m_running)
@@ -73,6 +104,7 @@ void GameEngine::run()
         m_entities.update();
         sEnemySpawner();
         sRender();
+        sCollision();
         sMoviment();
         sUserInput();
         m_currentFrame++;
@@ -100,6 +132,7 @@ void GameEngine::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePo
                                          sf::Color(m_bulletConfig.FR, m_bulletConfig.FG, m_bulletConfig.FB),
                                          sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OG),
                                          m_bulletConfig.OT);
+    e->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
 }
 void GameEngine::sEnemySpawner()
 {
@@ -125,6 +158,7 @@ void GameEngine::sEnemySpawner()
                                                   sf::Color(er, rg, eb),
                                                   sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OG),
                                                   m_enemyConfig.OT);
+        entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR);
     }
 }
 
@@ -141,6 +175,7 @@ void GameEngine::spawnPlayer()
                                               sf::Color(m_playerConfig.FR, m_playerConfig.FG, m_playerConfig.FB),
                                               sf::Color(m_playerConfig.OR, m_playerConfig.OG, m_playerConfig.OG),
                                               m_playerConfig.OT);
+    entity->cCollision = std::make_shared<CCollision>(m_playerConfig.CR);
     entity->cInput = std::make_shared<CInput>();
     m_player = entity;
 }

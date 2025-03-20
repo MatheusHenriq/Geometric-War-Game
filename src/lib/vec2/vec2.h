@@ -27,6 +27,7 @@ public:
 
     float dist(const Vec2 &rhs) const;
     Vec2 &normalize();
+    float distSquare(const Vec2 &rhs) const;
 
     float length() const;
 };
