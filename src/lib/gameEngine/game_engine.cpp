@@ -88,11 +88,9 @@ void GameEngine::sEnemySpawner()
     if (m_currentFrame % m_enemyConfig.SI == 0)
     {
         auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
-
         m_lastEnemySpawnTime = m_currentFrame;
         float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
         float ey = randNumber(m_window.getSize().y - m_enemyConfig.SR, m_enemyConfig.SR);
-
         float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
         float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
         int er = randNumber(255, 0);
@@ -227,7 +225,6 @@ void GameEngine::sMoviment()
     m_player->CTransform->pos.x += m_player->CTransform->velocity.x;
     m_player->CTransform->pos.y += m_player->CTransform->velocity.y;
 
-    // enemys
     for (auto e : m_entities.getEntities("enemy"))
     {
 
@@ -242,7 +239,7 @@ void GameEngine::sMoviment()
             e->CTransform->velocity.x *= -1;
         }
 
-        e->CTransform->pos.x += e->CTransform->velocity.x / m_currentFrame;
-        e->CTransform->pos.y += e->CTransform->velocity.y / m_currentFrame;
+        e->CTransform->pos.x += e->CTransform->velocity.x;
+        e->CTransform->pos.y += e->CTransform->velocity.y;
     }
 }
