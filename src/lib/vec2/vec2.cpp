@@ -25,6 +25,14 @@ Vec2 Vec2::operator-(const Vec2 &rhs) const
     return Vec2(x - rhs.x, y - rhs.y);
 }
 
+Vec2 &Vec2::normalize()
+{
+    float l = length();
+    x /= l;
+    y /= l;
+    return *this;
+}
+
 Vec2 Vec2::operator/(const float val) const
 {
     return Vec2(x / val, y / val);

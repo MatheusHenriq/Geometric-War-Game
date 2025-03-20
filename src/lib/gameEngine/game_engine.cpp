@@ -33,7 +33,7 @@ void GameEngine::loadConfigFile(const std::string &config)
         }
         else if (type == "Enemy")
         {
-            fin >> m_enemyConfig.SR >> m_enemyConfig.CR >> m_enemyConfig.OR >> m_enemyConfig.OG >> m_enemyConfig.OB >> m_enemyConfig.OT >> m_enemyConfig.VMIN >> m_enemyConfig.VMAX >> m_enemyConfig.L >> m_enemyConfig.SI >> m_enemyConfig.SMIN >> m_enemyConfig.SMAX;
+            fin >> m_enemyConfig.SR >> m_enemyConfig.CR >> m_enemyConfig.SMIN >> m_enemyConfig.SMAX >> m_enemyConfig.OR >> m_enemyConfig.OG >> m_enemyConfig.OB >> m_enemyConfig.OT >> m_enemyConfig.VMIN >> m_enemyConfig.VMAX >> m_enemyConfig.L >> m_enemyConfig.SI;
         }
         else if (type == "Bullet")
         {
@@ -70,10 +70,11 @@ void GameEngine::run()
 {
     while (m_running)
     {
+        m_entities.update();
+        sEnemySpawner();
         sRender();
         sMoviment();
         sUserInput();
-        m_entities.update();
         m_currentFrame++;
     }
 }
@@ -83,24 +84,31 @@ int GameEngine::randNumber(const int max, const int min)
 }
 void GameEngine::sEnemySpawner()
 {
-    auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
 
-    m_lastEnemySpawnTime = m_currentFrame;
-    float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
-    float ey = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
+    if (m_currentFrame % m_enemyConfig.SI == 0)
+    {
+        auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
 
-    float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
-    float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        m_lastEnemySpawnTime = m_currentFrame;
+        float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
+        float ey = randNumber(m_window.getSize().y - m_enemyConfig.SR, m_enemyConfig.SR);
 
-    auto entity = m_entities.addEntity("enemy");
-    entity->CTransform = std::make_shared<CTransform>(Vec2(ex, ey),
-                                                      Vec2(evx, evy),
-                                                      0.0f);
-    entity->cShape = std::make_shared<CShape>(m_enemyConfig.SR,
-                                              enemyVerticesNumber,
-                                              sf::Color(0, 0, 0),
-                                              sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OG),
-                                              m_enemyConfig.OT);
+        float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        int er = randNumber(255, 0);
+        int rg = randNumber(255, 0);
+        int eb = randNumber(255, 0);
+
+        auto entity = m_entities.addEntity("enemy");
+        entity->CTransform = std::make_shared<CTransform>(Vec2(ex, ey),
+                                                          Vec2(evx, evy),
+                                                          0.0f);
+        entity->cShape = std::make_shared<CShape>(m_enemyConfig.SR,
+                                                  enemyVerticesNumber,
+                                                  sf::Color(er, rg, eb),
+                                                  sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OG),
+                                                  m_enemyConfig.OT);
+    }
 }
 
 void GameEngine::spawnPlayer()
@@ -123,18 +131,14 @@ void GameEngine::spawnPlayer()
 void GameEngine::sRender()
 {
     m_window.clear();
-
     for (auto e : m_entities.getEntities())
     {
-        e->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
-        e->CTransform->angle += 1.0f; // rotation
-        e->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
-        m_window.draw(m_player->cShape->circle);
+        e->cShape->circle.setPosition(sf::Vector2(e->CTransform->pos.x, e->CTransform->pos.y));
+        e->CTransform->angle += 1.0f;
+        e->cShape->circle.setRotation(sf::degrees(e->CTransform->angle));
+        m_window.draw(e->cShape->circle);
     }
-    // m_player->cShape->circle.setPosition(sf::Vector2(m_player->CTransform->pos.x, m_player->CTransform->pos.y));
-    // m_player->CTransform->angle += 1.0f; // rotation
-    // m_player->cShape->circle.setRotation(sf::degrees(m_player->CTransform->angle));
-    // m_window.draw(m_player->cShape->circle);
+
     m_window.display();
 }
 
@@ -198,10 +202,11 @@ void GameEngine::sUserInput()
 
 void GameEngine::sMoviment()
 {
-
-    m_player->CTransform->velocity = Vec2(0, 0);
     float wx = m_window.getSize().x;
     float wy = m_window.getSize().y;
+
+    // player
+    m_player->CTransform->velocity = Vec2(0, 0);
     if (m_player->cInput->up && m_player->CTransform->pos.y - m_player->cShape->circle.getRadius() > 0)
     {
         m_player->CTransform->velocity.y = -m_playerConfig.S;
@@ -221,4 +226,23 @@ void GameEngine::sMoviment()
 
     m_player->CTransform->pos.x += m_player->CTransform->velocity.x;
     m_player->CTransform->pos.y += m_player->CTransform->velocity.y;
+
+    // enemys
+    for (auto e : m_entities.getEntities("enemy"))
+    {
+
+        float radius = e->cShape->circle.getRadius();
+
+        if (e->CTransform->pos.y - radius <= 0 || e->CTransform->pos.y + radius >= wy)
+        {
+            e->CTransform->velocity.y *= -1;
+        }
+        if (e->CTransform->pos.x - radius <= 0 || e->CTransform->pos.x + radius >= wx)
+        {
+            e->CTransform->velocity.x *= -1;
+        }
+
+        e->CTransform->pos.x += e->CTransform->velocity.x / m_currentFrame;
+        e->CTransform->pos.y += e->CTransform->velocity.y / m_currentFrame;
+    }
 }

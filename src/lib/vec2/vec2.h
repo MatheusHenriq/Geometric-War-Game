@@ -26,6 +26,7 @@ public:
     Vec2 &rotate(const float degree);
 
     float dist(const Vec2 &rhs) const;
+    Vec2 &normalize();
 
     float length() const;
 };

@@ -24,10 +24,10 @@ void EntityManager::update()
 
 void EntityManager::removeDeadEntities(EntityVec &vec)
 {
-    // auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](Entity v)
-    //                                    { return !v.isAlive(); });
+    auto deadEntities = std::remove_if(vec.begin(), vec.end(), [](Entity v)
+                                       { return !v.isAlive(); });
 
-    // vec.erase(deadEntities);
+    vec.erase(deadEntities);
 }
 
 std::shared_ptr<Entity> EntityManager::addEntity(const std::string &tag)
