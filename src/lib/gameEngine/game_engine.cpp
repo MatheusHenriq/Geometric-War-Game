@@ -73,10 +73,22 @@ void GameEngine::sLifespan()
         e->cLifespan->remaining--;
         e->cShape->circle.setFillColor(sf::Color(255, 255, 255, 255 * e->cLifespan->remaining / e->cLifespan->total));
         e->cShape->circle.setOutlineColor(sf::Color(255, 255, 255, 255 * e->cLifespan->remaining / e->cLifespan->total));
-        std::cout << e->cLifespan->remaining << std::endl;
         if (e->cLifespan->remaining == 0)
         {
             e->destroy();
+        }
+    }
+    for (auto e : m_entities.getEntities("enemy"))
+    {
+        if (e->cLifespan->total > 0)
+        {
+            e->cLifespan->remaining--;
+            e->cShape->circle.setFillColor(sf::Color(e->cShape->circle.getFillColor().r, e->cShape->circle.getFillColor().g, e->cShape->circle.getFillColor().b, 255 * e->cLifespan->remaining / e->cLifespan->total));
+            e->cShape->circle.setOutlineColor(sf::Color(e->cShape->circle.getOutlineColor().r, e->cShape->circle.getOutlineColor().r, e->cShape->circle.getOutlineColor().r, e->cShape->circle.getFillColor().r * e->cLifespan->remaining / e->cLifespan->total));
+            if (e->cLifespan->remaining == 0)
+            {
+                e->destroy();
+            }
         }
     }
 }
@@ -92,6 +104,7 @@ void GameEngine::sCollision()
             {
                 e->destroy();
                 b->destroy();
+                spawnSmallEnemies(e);
                 break;
             }
         }
@@ -150,7 +163,56 @@ void GameEngine::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePo
     e->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
     e->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L);
 }
+
 void GameEngine::sEnemySpawner()
+{
+
+    if (m_currentFrame % m_enemyConfig.SI == 0)
+    {
+        auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
+        m_lastEnemySpawnTime = m_currentFrame;
+        float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
+        float ey = randNumber(m_window.getSize().y - m_enemyConfig.SR, m_enemyConfig.SR);
+        float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        int er = randNumber(255, 0);
+        int rg = randNumber(255, 0);
+        int eb = randNumber(255, 0);
+
+        auto entity = m_entities.addEntity("enemy");
+        entity->CTransform = std::make_shared<CTransform>(Vec2(ex, ey),
+                                                          Vec2(evx, evy),
+                                                          0.0f);
+        entity->cShape = std::make_shared<CShape>(m_enemyConfig.SR,
+                                                  enemyVerticesNumber,
+                                                  sf::Color(er, rg, eb),
+                                                  sf::Color(m_enemyConfig.OR, m_enemyConfig.OG, m_enemyConfig.OG),
+                                                  m_enemyConfig.OT);
+        entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR);
+        entity->cLifespan = std::make_shared<CLifespan>(0);
+    }
+}
+void GameEngine::spawnSmallEnemies(std::shared_ptr<Entity> entity)
+{
+    int smallEnemiesNumber = entity->cShape->circle.getPointCount();
+    float ang = 360 / smallEnemiesNumber;
+    for (size_t i = 0; i < smallEnemiesNumber; i++)
+    {
+        auto e = m_entities.addEntity("enemy");
+        e->CTransform = std::make_shared<CTransform>(Vec2(entity->CTransform->pos.x, entity->CTransform->pos.y),
+                                                     Vec2((entity->CTransform->velocity.x * cos(ang * i)), (entity->CTransform->velocity.y * sin(ang * i))),
+                                                     0.0f);
+        e->cShape = std::make_shared<CShape>(m_enemyConfig.SR / 3,
+                                             smallEnemiesNumber,
+                                             entity->cShape->circle.getFillColor(),
+                                             entity->cShape->circle.getOutlineColor(),
+                                             m_enemyConfig.OT);
+        e->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR / 3);
+        e->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.L);
+    }
+}
+
+void GameEngine::spawnEnemy()
 {
 
     if (m_currentFrame % m_enemyConfig.SI == 0)
