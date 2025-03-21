@@ -94,6 +94,8 @@ void GameEngine::sLifespan()
 }
 void GameEngine::sCollision()
 {
+    // Check for collision bullet - enemy
+
     for (auto b : m_entities.getEntities("bullet"))
     {
         for (auto e : m_entities.getEntities("enemy"))
@@ -109,16 +111,29 @@ void GameEngine::sCollision()
             }
         }
     }
+    // Check for collision on borders and Collision with player
+    float wx = m_window.getSize().x;
+    float wy = m_window.getSize().y;
     for (auto e : m_entities.getEntities("enemy"))
     {
+        float radius = e->cShape->circle.getRadius();
+
+        if (e->CTransform->pos.y - radius <= 0 || e->CTransform->pos.y + radius >= wy)
+        {
+            e->CTransform->velocity.y *= -1;
+        }
+        if (e->CTransform->pos.x - radius <= 0 || e->CTransform->pos.x + radius >= wx)
+        {
+            e->CTransform->velocity.x *= -1;
+        }
+
         float distanceSquare = e->CTransform->pos.distSquare(m_player->CTransform->pos);
         float radiusSquareSum = (m_player->cCollision->radius + e->cCollision->radius) * (m_player->cCollision->radius + e->cCollision->radius);
         if (abs(distanceSquare) <= radiusSquareSum)
         {
             e->destroy();
-            float mx = m_window.getSize().x / 2.0f;
-            float my = m_window.getSize().y / 2.0f;
-            m_player->CTransform->pos = Vec2(mx, my);
+            m_player->CTransform->pos = Vec2(wx / 2.0f, wy / 2.0f);
+            spawnSmallEnemies(e);
             break;
         }
     }
@@ -195,19 +210,20 @@ void GameEngine::sEnemySpawner()
 void GameEngine::spawnSmallEnemies(std::shared_ptr<Entity> entity)
 {
     int smallEnemiesNumber = entity->cShape->circle.getPointCount();
-    float ang = 360 / smallEnemiesNumber;
+    float angle = 2 * M_PI / smallEnemiesNumber;
     for (size_t i = 0; i < smallEnemiesNumber; i++)
     {
+
         auto e = m_entities.addEntity("enemy");
         e->CTransform = std::make_shared<CTransform>(Vec2(entity->CTransform->pos.x, entity->CTransform->pos.y),
-                                                     Vec2((entity->CTransform->velocity.x * cos(ang * i)), (entity->CTransform->velocity.y * sin(ang * i))),
+                                                     Vec2(((entity->CTransform->velocity.x * cos(angle * i))) / m_enemyConfig.SMAX, (entity->CTransform->velocity.y * sin(angle * i)) / m_enemyConfig.SMAX),
                                                      0.0f);
-        e->cShape = std::make_shared<CShape>(m_enemyConfig.SR / 3,
+        e->cShape = std::make_shared<CShape>(m_enemyConfig.SR / 2.5,
                                              smallEnemiesNumber,
                                              entity->cShape->circle.getFillColor(),
                                              entity->cShape->circle.getOutlineColor(),
                                              m_enemyConfig.OT);
-        e->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR / 3);
+        e->cCollision = std::make_shared<CCollision>(0);
         e->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.L);
     }
 }
@@ -368,17 +384,6 @@ void GameEngine::sMoviment()
 
     for (auto e : m_entities.getEntities("enemy"))
     {
-
-        float radius = e->cShape->circle.getRadius();
-
-        if (e->CTransform->pos.y - radius <= 0 || e->CTransform->pos.y + radius >= wy)
-        {
-            e->CTransform->velocity.y *= -1;
-        }
-        if (e->CTransform->pos.x - radius <= 0 || e->CTransform->pos.x + radius >= wx)
-        {
-            e->CTransform->velocity.x *= -1;
-        }
 
         e->CTransform->pos.x += e->CTransform->velocity.x;
         e->CTransform->pos.y += e->CTransform->velocity.y;
