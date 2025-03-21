@@ -66,6 +66,20 @@ void GameEngine::init(const std::string &config)
     spawnPlayer();
 }
 
+void GameEngine::sLifespan()
+{
+    for (auto e : m_entities.getEntities("bullet"))
+    {
+        e->cLifespan->remaining--;
+        e->cShape->circle.setFillColor(sf::Color(255, 255, 255, 255 * e->cLifespan->remaining / e->cLifespan->total));
+        e->cShape->circle.setOutlineColor(sf::Color(255, 255, 255, 255 * e->cLifespan->remaining / e->cLifespan->total));
+        std::cout << e->cLifespan->remaining << std::endl;
+        if (e->cLifespan->remaining == 0)
+        {
+            e->destroy();
+        }
+    }
+}
 void GameEngine::sCollision()
 {
     for (auto b : m_entities.getEntities("bullet"))
@@ -104,6 +118,7 @@ void GameEngine::run()
         m_entities.update();
         sEnemySpawner();
         sRender();
+        sLifespan();
         sCollision();
         sMoviment();
         sUserInput();
@@ -133,6 +148,7 @@ void GameEngine::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePo
                                          sf::Color(m_bulletConfig.OR, m_bulletConfig.OG, m_bulletConfig.OG),
                                          m_bulletConfig.OT);
     e->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
+    e->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L);
 }
 void GameEngine::sEnemySpawner()
 {
