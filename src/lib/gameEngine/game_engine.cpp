@@ -50,14 +50,7 @@ void GameEngine::loadConfigFile(const std::string &config)
 void GameEngine::init(const std::string &config)
 {
     loadConfigFile(config);
-    if (m_font.openFromFile(m_fontConfig.P))
-    {
-        m_text = std::make_shared<sf::Text>(m_font);
-        m_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
-        m_text->setCharacterSize(m_fontConfig.ST);
-        m_text->setPosition(sf::Vector2f(12.0f, 0.0f));
-        m_text->setString("Score: " + std::to_string(m_score));
-    }
+
     if (m_windowConfig.FS == 0)
     {
         m_window.create(sf::VideoMode({m_windowConfig.W, m_windowConfig.H}), "Assignment 2!");
@@ -65,6 +58,23 @@ void GameEngine::init(const std::string &config)
     else
     {
         m_window.create(sf::VideoMode({m_windowConfig.W, m_windowConfig.H}), "Assignment 2!", sf::State::Fullscreen);
+    }
+    if (m_font.openFromFile(m_fontConfig.P))
+    {
+        m_score_text = std::make_shared<sf::Text>(m_font);
+        m_score_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
+        m_score_text->setCharacterSize(m_fontConfig.ST);
+        m_score_text->setPosition(sf::Vector2f(12.0f, 0.0f));
+        m_score_text->setString("Score: " + std::to_string(m_score));
+        m_pause_text = std::make_shared<sf::Text>(m_font);
+        m_pause_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
+        m_pause_text->setCharacterSize(m_fontConfig.ST * 2);
+        m_pause_text->setString("Paused");
+
+        sf::FloatRect textRect = m_pause_text->getLocalBounds();
+        float getTextSize = (float)m_pause_text->getCharacterSize();
+        std::cout << textRect.size.x << std::endl;
+        m_pause_text->setPosition(sf::Vector2f((m_window.getSize().x - textRect.size.x) / 2.0f, (m_window.getSize().y - textRect.size.y) / 2.0f));
     }
     spectialAbilityCoolDown.start();
     m_window.setFramerateLimit(m_windowConfig.FL);
@@ -308,14 +318,18 @@ void GameEngine::spawnPlayer()
 void GameEngine::sRender()
 {
     m_window.clear();
-    m_text->setString("Score:" + std::to_string(m_score));
+    m_score_text->setString("Score:" + std::to_string(m_score));
     for (auto e : m_entities.getEntities())
     {
         e->cShape->circle.setPosition(sf::Vector2(e->CTransform->pos.x, e->CTransform->pos.y));
         e->CTransform->angle += 1.0f;
         e->cShape->circle.setRotation(sf::degrees(e->CTransform->angle));
         m_window.draw(e->cShape->circle);
-        m_window.draw(*m_text);
+        m_window.draw(*m_score_text);
+        if (m_paused)
+        {
+            m_window.draw(*m_pause_text);
+        }
     }
 
     m_window.display();

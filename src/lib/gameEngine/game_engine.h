@@ -39,7 +39,9 @@ class GameEngine
     EntityManager m_entities;
     sf::Font m_font;
 
-    std::shared_ptr<sf::Text> m_text;
+    std::shared_ptr<sf::Text> m_score_text;
+    std::shared_ptr<sf::Text> m_pause_text;
+
     PlayerConfig m_playerConfig;
     EnemyConfig m_enemyConfig;
     sf::Clock spectialAbilityCoolDown;
