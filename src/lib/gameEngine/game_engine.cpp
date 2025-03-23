@@ -7,6 +7,7 @@
 #include "../entity/entity.h"
 #include "../vec2/vec2.h"
 #include "game_engine.h"
+#include <sstream>
 
 GameEngine::GameEngine(const std::string &config)
 {
@@ -54,6 +55,8 @@ void GameEngine::init(const std::string &config)
         m_text = std::make_shared<sf::Text>(m_font);
         m_text->setFillColor(sf::Color(m_fontConfig.R, m_fontConfig.G, m_fontConfig.B));
         m_text->setCharacterSize(m_fontConfig.ST);
+        m_text->setPosition(sf::Vector2f(12.0f, 0.0f));
+        m_text->setString("Score: " + std::to_string(m_score));
     }
     if (m_windowConfig.FS == 0)
     {
@@ -65,6 +68,7 @@ void GameEngine::init(const std::string &config)
     }
     spectialAbilityCoolDown.start();
     m_window.setFramerateLimit(m_windowConfig.FL);
+
     spawnPlayer();
 }
 
@@ -111,6 +115,8 @@ void GameEngine::sCollision()
             {
                 e->destroy();
                 b->destroy();
+
+                m_score += e->cScore->score;
                 spawnSmallEnemies(e);
                 break;
             }
@@ -123,6 +129,7 @@ void GameEngine::sCollision()
             {
                 e->destroy();
                 b->destroy();
+                m_score += e->cScore->score;
                 break;
             }
         }
@@ -149,6 +156,7 @@ void GameEngine::sCollision()
         {
             e->destroy();
             m_player->CTransform->pos = Vec2(wx / 2.0f, wy / 2.0f);
+            m_score = 0;
             spawnSmallEnemies(e);
             break;
         }
@@ -168,16 +176,16 @@ void GameEngine::run()
             sLifespan();
             sCollision();
             sMoviment();
+            m_currentFrame++;
         }
 
         sUserInput();
-        m_currentFrame++;
     }
 }
 
 int GameEngine::randNumber(const int max, const int min)
 {
-    return min + (rand() % (1 + max - min));
+    return min + (std::rand() % (1 + max - min));
 }
 
 void GameEngine::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 &mousePos)
@@ -213,8 +221,9 @@ void GameEngine::spawnSmallEnemies(std::shared_ptr<Entity> entity)
     {
 
         auto e = m_entities.addEntity("smallEnemy");
+        float velocity = entity->CTransform->velocity.x > entity->CTransform->velocity.y ? entity->CTransform->velocity.x : entity->CTransform->velocity.y;
         e->CTransform = std::make_shared<CTransform>(Vec2(entity->CTransform->pos.x, entity->CTransform->pos.y),
-                                                     Vec2(((entity->CTransform->velocity.x * cos(angle * i))) / m_enemyConfig.SMAX, (entity->CTransform->velocity.y * sin(angle * i)) / m_enemyConfig.SMAX),
+                                                     Vec2(((velocity * cos(angle * i))) / m_enemyConfig.SMAX, (velocity * sin(angle * i)) / m_enemyConfig.SMAX),
                                                      0.0f);
         e->cShape = std::make_shared<CShape>(m_enemyConfig.SR / 2.5,
                                              smallEnemiesNumber,
@@ -223,21 +232,22 @@ void GameEngine::spawnSmallEnemies(std::shared_ptr<Entity> entity)
                                              m_enemyConfig.OT);
         e->cCollision = std::make_shared<CCollision>(m_enemyConfig.SR / 2.5);
         e->cLifespan = std::make_shared<CLifespan>(m_enemyConfig.L);
+        e->cScore = std::make_shared<CScore>(100 * smallEnemiesNumber);
     }
 }
 
 void GameEngine::spawnEnemy()
 {
 
-    if (m_currentFrame % m_enemyConfig.SI == 0)
+    if (m_currentFrame - m_lastEnemySpawnTime == m_enemyConfig.SI)
     {
         auto enemyVerticesNumber = randNumber(m_enemyConfig.VMAX, m_enemyConfig.VMIN);
         m_lastEnemySpawnTime = m_currentFrame;
         float ex = randNumber(m_window.getSize().x - m_enemyConfig.SR, m_enemyConfig.SR);
         float ey = randNumber(m_window.getSize().y - m_enemyConfig.SR, m_enemyConfig.SR);
-        if (ex == m_player->CTransform->pos.x && ey == m_player->CTransform->pos.y)
+        if (abs(Vec2(ex, ey).dist(m_player->CTransform->pos)) <= m_playerConfig.CR)
         {
-            float playerCR = m_playerConfig.CR * m_playerConfig.S;
+            float playerCR = m_playerConfig.CR * m_playerConfig.S * 2;
             if (ex + playerCR < m_window.getSize().x)
             {
                 ex += playerCR;
@@ -255,8 +265,8 @@ void GameEngine::spawnEnemy()
                 ey -= playerCR;
             }
         }
-        float evx = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
-        float evy = randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN);
+        float evx = float(randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN));
+        float evy = float(randNumber(m_enemyConfig.SMAX, m_enemyConfig.SMIN));
         int er = randNumber(255, 0);
         int rg = randNumber(255, 0);
         int eb = randNumber(255, 0);
@@ -272,6 +282,7 @@ void GameEngine::spawnEnemy()
                                                   m_enemyConfig.OT);
         entity->cCollision = std::make_shared<CCollision>(m_enemyConfig.CR);
         entity->cLifespan = std::make_shared<CLifespan>(0);
+        entity->cScore = std::make_shared<CScore>(100 * enemyVerticesNumber);
     }
 }
 
@@ -296,12 +307,16 @@ void GameEngine::spawnPlayer()
 void GameEngine::sRender()
 {
     m_window.clear();
+    m_text->setString("Score:" + std::to_string(m_score));
+
     for (auto e : m_entities.getEntities())
     {
         e->cShape->circle.setPosition(sf::Vector2(e->CTransform->pos.x, e->CTransform->pos.y));
         e->CTransform->angle += 1.0f;
         e->cShape->circle.setRotation(sf::degrees(e->CTransform->angle));
         m_window.draw(e->cShape->circle);
+
+        m_window.draw(*m_text);
     }
 
     m_window.display();
@@ -429,29 +444,32 @@ void GameEngine::setPause(bool paused)
 
 void GameEngine::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
 {
-    sf::Time elapsedTime = spectialAbilityCoolDown.getElapsedTime();
-    if (elapsedTime.asMilliseconds() >= 2000)
+    if (!m_paused)
     {
-        Vec2 entityPosition = entity->CTransform->pos;
-
-        float angle = 2 * M_PI / (m_playerConfig.V + 5);
-
-        for (size_t i = 0; i < (m_playerConfig.V + 5); i++)
+        sf::Time elapsedTime = spectialAbilityCoolDown.getElapsedTime();
+        if (elapsedTime.asMilliseconds() >= 2000)
         {
-            auto e = m_entities.addEntity("bullet");
-            e->CTransform = std::make_shared<CTransform>(Vec2(entityPosition.x, entityPosition.y),
-                                                         Vec2(m_playerConfig.S * cos(angle * i), m_playerConfig.S * sin(angle * i)),
-                                                         0.0f);
+            Vec2 entityPosition = entity->CTransform->pos;
 
-            e->cShape = std::make_shared<CShape>(m_bulletConfig.SR,
-                                                 m_bulletConfig.V,
-                                                 m_player->cShape->circle.getFillColor(),
-                                                 m_player->cShape->circle.getOutlineColor(),
-                                                 m_bulletConfig.OT);
+            float angle = 2 * M_PI / (m_playerConfig.V + 5);
 
-            e->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
-            e->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L / 2);
-            spectialAbilityCoolDown.restart();
+            for (size_t i = 0; i < (m_playerConfig.V + 5); i++)
+            {
+                auto e = m_entities.addEntity("bullet");
+                e->CTransform = std::make_shared<CTransform>(Vec2(entityPosition.x, entityPosition.y),
+                                                             Vec2(m_playerConfig.S * cos(angle * i), m_playerConfig.S * sin(angle * i)),
+                                                             0.0f);
+
+                e->cShape = std::make_shared<CShape>(m_bulletConfig.SR,
+                                                     m_bulletConfig.V,
+                                                     m_player->cShape->circle.getFillColor(),
+                                                     m_player->cShape->circle.getOutlineColor(),
+                                                     m_bulletConfig.OT);
+
+                e->cCollision = std::make_shared<CCollision>(m_bulletConfig.CR);
+                e->cLifespan = std::make_shared<CLifespan>(m_bulletConfig.L);
+                spectialAbilityCoolDown.restart();
+            }
         }
     }
 }
