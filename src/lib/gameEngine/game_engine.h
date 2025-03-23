@@ -38,6 +38,7 @@ class GameEngine
     sf::RenderWindow m_window;
     EntityManager m_entities;
     sf::Font m_font;
+
     std::shared_ptr<sf::Text> m_text;
     PlayerConfig m_playerConfig;
     EnemyConfig m_enemyConfig;

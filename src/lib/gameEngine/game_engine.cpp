@@ -137,6 +137,7 @@ void GameEngine::sCollision()
     // Check for collision on borders and Collision with player
     float wx = m_window.getSize().x;
     float wy = m_window.getSize().y;
+
     for (auto e : m_entities.getEntities("enemy"))
     {
         float radius = e->cShape->circle.getRadius();
@@ -308,14 +309,12 @@ void GameEngine::sRender()
 {
     m_window.clear();
     m_text->setString("Score:" + std::to_string(m_score));
-
     for (auto e : m_entities.getEntities())
     {
         e->cShape->circle.setPosition(sf::Vector2(e->CTransform->pos.x, e->CTransform->pos.y));
         e->CTransform->angle += 1.0f;
         e->cShape->circle.setRotation(sf::degrees(e->CTransform->angle));
         m_window.draw(e->cShape->circle);
-
         m_window.draw(*m_text);
     }
 
@@ -326,6 +325,7 @@ void GameEngine::sUserInput()
 {
     while (const std::optional event = m_window.pollEvent())
     {
+
         if (event->is<sf::Event::MouseButtonPressed>())
         {
             if (event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left)
