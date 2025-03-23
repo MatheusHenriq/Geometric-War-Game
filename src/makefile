@@ -22,7 +22,7 @@ $(TARGET): $(OBJ_FILES)
 	$(CXX) $(OBJ_FILES) $(LDFLAGS) -o $(TARGET)
 
 $(BUILD_DIR)/%.o: %.cpp
-	@mkdir -p $(dir $@) # Garante que o diretório build exista
+	@mkdir -p $(dir $@) 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 xclean:
