@@ -41,6 +41,7 @@ class GameEngine
     std::shared_ptr<sf::Text> m_text;
     PlayerConfig m_playerConfig;
     EnemyConfig m_enemyConfig;
+    sf::Clock spectialAbilityCoolDown;
     BulletConfig m_bulletConfig;
     WindowConfig m_windowConfig;
     FontConfig m_fontConfig;
@@ -69,15 +70,6 @@ class GameEngine
 public:
     GameEngine(const std::string &config);
     void run();
-    // void mainLoop()
-    // {
-    //     m_entityManager.update();
-    //     // sUserInput();
-    //     // sMovement();
-    //     // sCollision();
-    //     // sRender();
-    //     m_currentFrame++;
-    // }
 };
 
 #endif
